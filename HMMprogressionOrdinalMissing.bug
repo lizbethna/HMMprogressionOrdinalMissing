@@ -1,0 +1,91 @@
+/*
+Paper:
+A Hidden Markov model addressing missing ordinal responses 
+and replicated covariates to monitor Parkinson's disease progression 
+based on recorded speech
+
+Authors:
+Lizbeth Naranjo (1), Carlos J. Perez (2), Yolanda Campos-Roca (3).
+
+(1) Departamento de Matemáticas, Facultad de Ciencias, 
+Universidad Nacional Autonoma de Mexico (UNAM), Mexico
+(2) Departamento de Matematicas, Facultad de Veterinaria, 
+Universidad de Extremadura, Spain
+(3) Departamento de Tecnologias de los Computadores y de las Comunicaciones, 
+Escuela Politecnica, Universidad de Extremadura, Spain
+ 
+Journal: 
+Submitted. Under Revision. 
+*/
+ 
+
+model{
+
+### Likelihood
+
+for(i in 1:N){		
+
+### First time
+	Y[i,1] ~ dinterval(Wobs[i,2],kappaF[1:(K-1)])	
+	Wobs[i,2] ~ dnorm(ETA[i,1],1)
+	ETA[i,1] <- Xtrue[i,1,]%*%betaF + Z[i,1,]%*%gammaF
+
+
+### Posterior times
+	for(t in 2:Ni[i]){
+		Y[i,Nx.noNA[i,t]] ~ dinterval(Wobs[i,Nx.noNA[i,t]+1],kappaP[1:(K-1)])	
+		ETA[i,Nx.noNA[i,t]] <- Xtrue[i,Nx.noNA[i,t],]%*%betaP + Z[i,Nx.noNA[i,t],]%*%gammaP
+	}
+	Wobs[i,1] <- -100
+	Wobs[i,TT+2] <- 100
+	for(t in 2:TT){
+		Wobs[i,t+1] ~ dnorm(ETA[i,t],1)T(Wobs[i,t],)
+	}
+
+### Replications
+      	for(t in 1:Ni[i]){
+        for(l in 1:L){		
+		for(j in 1:J){	
+			X[i,Nx.noNA[i,t],j,l] ~ dnorm(Xtrue[i,Nx.noNA[i,t],l],invsigma2[l])
+	       }	
+		Xtrue[i,Nx.noNA[i,t],l] ~ dnorm(0,1)
+	}	}
+}  
+
+### Missing Data
+for(i2 in 1:N.mis){
+	for(t2 in 1:Ni.mis[i2]){ 
+		ETA[id.mis[i2],TTi.mis[i2,t2]] ~ dnorm(0,1)
+	}
+}
+
+for(i2 in 1:N.mis){
+	for(t2 in 1:Ni.mis[i2]){ 
+		Ymis[id.mis[i2],TTi.mis[i2,t2]] ~ dinterval(Wobs[id.mis[i2],TTi.mis[i2,t2]+1],kappaP[1:(K-1)])
+		Wmis[id.mis[i2],TTi.mis[i2,t2]+1] <- Wobs[id.mis[i2],TTi.mis[i2,t2]+1]
+	}
+}
+
+### PRIOR
+
+	for(l in 1:L){
+		invsigma2[l] ~ dgamma(1.0E-3,1.0E-3)  
+ 		sigma2[l] <- pow(invsigma2[l],-1)
+   		betaF[l] ~ dnorm(0,0.0001)	
+   		betaP[l] ~ dnorm(0,0.0001)	
+   	}
+	for(m in 1:M){
+		gammaF[m] ~ dnorm(0,1.0E-4)
+		gammaP[m] ~ dnorm(0,1.0E-4)
+	}
+	for(k in 1:(K-1)){
+		kappainiF[k] ~ dnorm(0.0,1.0)
+		kappainiP[k] ~ dnorm(0.0,1.0)
+	}
+	kappa0F <- sort(kappainiF[])
+	kappa0P <- sort(kappainiP[])
+	kappaF <- kappa0F-kappa0F[1] 
+	kappaP <- kappa0P-kappa0P[1] 
+
+}
+
