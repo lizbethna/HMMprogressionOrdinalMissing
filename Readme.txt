@@ -15,8 +15,8 @@ Universidad Nacional Autonoma de Mexico (UNAM), Mexico
 (2) Departamento de Matematicas, Facultad de Veterinaria, 
 Universidad de Extremadura, Spain
 
-(3) 3Departamento de Tecnologias de los Computadores y de las Comunicaciones, 
-Escuela Politecnica, Universidad de Extremadura, Spain
+(3) 3Departamento de Tecnologias de los Computadores y de las Comunicaciones, 
+Escuela Politecnica, Universidad de Extremadura, Spain
 
 
 Journal: 

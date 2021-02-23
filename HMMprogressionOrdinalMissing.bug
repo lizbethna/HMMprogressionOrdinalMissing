@@ -26,15 +26,15 @@ model{
 for(i in 1:N){		
 
 ### First time
-	Y[i,1] ~ dinterval(Wobs[i,2],kappaF[1:(K-1)])	
+	Y[i,1] ~ dinterval(Wobs[i,2],kappa[1:(K-1)])	
 	Wobs[i,2] ~ dnorm(ETA[i,1],1)
-	ETA[i,1] <- Xtrue[i,1,]%*%betaF + Z[i,1,]%*%gammaF
+	ETA[i,1] <- Xtrue[i,1,]%*%beta + Z[i,1,]%*%gamma
 
 
 ### Posterior times
 	for(t in 2:Ni[i]){
-		Y[i,Nx.noNA[i,t]] ~ dinterval(Wobs[i,Nx.noNA[i,t]+1],kappaP[1:(K-1)])	
-		ETA[i,Nx.noNA[i,t]] <- Xtrue[i,Nx.noNA[i,t],]%*%betaP + Z[i,Nx.noNA[i,t],]%*%gammaP
+		Y[i,Nx.noNA[i,t]] ~ dinterval(Wobs[i,Nx.noNA[i,t]+1],kappa[1:(K-1)])	
+		ETA[i,Nx.noNA[i,t]] <- Xtrue[i,Nx.noNA[i,t],]%*%beta + Z[i,Nx.noNA[i,t],]%*%gamma
 	}
 	Wobs[i,1] <- -100
 	Wobs[i,TT+2] <- 100
@@ -61,7 +61,7 @@ for(i2 in 1:N.mis){
 
 for(i2 in 1:N.mis){
 	for(t2 in 1:Ni.mis[i2]){ 
-		Ymis[id.mis[i2],TTi.mis[i2,t2]] ~ dinterval(Wobs[id.mis[i2],TTi.mis[i2,t2]+1],kappaP[1:(K-1)])
+		Ymis[id.mis[i2],TTi.mis[i2,t2]] ~ dinterval(Wobs[id.mis[i2],TTi.mis[i2,t2]+1],kappa[1:(K-1)])
 		Wmis[id.mis[i2],TTi.mis[i2,t2]+1] <- Wobs[id.mis[i2],TTi.mis[i2,t2]+1]
 	}
 }
@@ -71,21 +71,16 @@ for(i2 in 1:N.mis){
 	for(l in 1:L){
 		invsigma2[l] ~ dgamma(1.0E-3,1.0E-3)  
  		sigma2[l] <- pow(invsigma2[l],-1)
-   		betaF[l] ~ dnorm(0,0.0001)	
-   		betaP[l] ~ dnorm(0,0.0001)	
+   		beta[l] ~ dnorm(0,0.0001)	
    	}
 	for(m in 1:M){
-		gammaF[m] ~ dnorm(0,1.0E-4)
-		gammaP[m] ~ dnorm(0,1.0E-4)
+		gamma[m] ~ dnorm(0,1.0E-4)
 	}
 	for(k in 1:(K-1)){
-		kappainiF[k] ~ dnorm(0.0,1.0)
-		kappainiP[k] ~ dnorm(0.0,1.0)
+		kappaini[k] ~ dnorm(0.0,1.0)
 	}
-	kappa0F <- sort(kappainiF[])
-	kappa0P <- sort(kappainiP[])
-	kappaF <- kappa0F-kappa0F[1] 
-	kappaP <- kappa0P-kappa0P[1] 
+	kappa0 <- sort(kappaini[])
+	kappa <- kappa0-kappa0[1] 
 
 }
 

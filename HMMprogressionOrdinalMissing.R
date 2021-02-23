@@ -8,11 +8,11 @@
 ### Lizbeth Naranjo (1), Carlos J. Perez (2), Yolanda Campos-Roca (3).
 ###
 ### (1) Departamento de Matemáticas, Facultad de Ciencias, 
-### Universidad Nacional Autonoma de Mexico (UNAM), Mexico
+### Universidad Nacional Autonoma de Mexico (UNAM), Mexico
 ### (2) Departamento de Matematicas, Facultad de Veterinaria, 
-### Universidad de Extremadura, Spain
+### Universidad de Extremadura, Spain
 ### (3) Departamento de Tecnologias de los Computadores y de las Comunicaciones, 
-### Escuela Politecnica, Universidad de Extremadura, Spain
+### Escuela Politecnica, Universidad de Extremadura, Spain
 ### 
 ### Journal: 
 ### Submitted. Under Revision. 
@@ -74,23 +74,23 @@ N = 100   # subjects
 TT = 4   # times
 K = 4   # categories
 J =  3   # replicaciones
-L = 3   # covariates with replications
+L = 4   # covariates with replications
 M = 2   # covariates without replications
 
-betaF = c(1,1.5,-2)
-betaP = c(1,1.5,-2)
-gammaF = c(1,-1)
-gammaP = c(1,-1)
-kappaF = c(-Inf,0,2,4,Inf)
-kappaP = c(-Inf,0,2,4,Inf)
-sigma2 = c(0.2,0.3,0.4)^2
+beta = c(1.0,0.5,-1.5,-2)
+gamma = c(0.4,0.2)
+kappa = c(-Inf,0,1.5,3.0,Inf)
+sigma2 = c(0.2,0.25,0.3,0.35)^2
 
 ##################################################
 
 ##################################################
 ### Covariates and Replications 
 
-Z = array( runif(N*TT*M) ,dim=c(N,TT,M)) 
+Z = array( NA ,dim=c(N,M)) 
+Z[,1] = rbinom(N,prob=0.5,size=1)
+Z[,2] = rpois(N,lambda=5)
+
 Xmean = array( runif(N*TT*L) ,dim=c(N,TT,L)) 
 X = array(NA,dim=c(N,TT,J,L))
 for(i in 1:N){
@@ -107,9 +107,9 @@ for(l in 1:L){
 set.seed(12345)
 
 eta = array(NA,dim=c(N,TT))   ### linear predictor
-eta[,1] = Xmean[,1,]%*%betaF + Z[,1,]%*%gammaF 
+eta[,1] = Xmean[,1,]%*%beta + Z[,]%*%gamma 
 for(t in 2:TT){
-  eta[,t] = Xmean[,t,]%*%betaP + Z[,t,]%*%gammaP 
+  eta[,t] = Xmean[,t,]%*%beta + Z[,]%*%gamma 
 }
 Y = W = array(NA,dim=c(N,TT))
 for(i in 1:N){
@@ -119,12 +119,12 @@ for(i in 1:N){
 }  }
 for(i in 1:N){
   for(k in 1:K){
-    if(kappaF[k]< W[i,1] & W[i,1]<=kappaF[k+1]){
+    if(kappa[k]< W[i,1] & W[i,1]<=kappa[k+1]){
       Y[i,1] = k
   }  }
   for(t in 2:TT){
     for(k in 1:K){
-      if(kappaP[k]< W[i,t] & W[i,t]<=kappaP[k+1]){
+      if(kappa[k]< W[i,t] & W[i,t]<=kappa[k+1]){
         Y[i,t] = k
 }  }  }  }	
   
@@ -164,7 +164,7 @@ Ni = rep(NA,N)   ### Indica cuantos valores son distintos de NA, para cada sujet
 Nx = Nx.noNA = Nx.NA = array(NA,dim=c(N,TT))   
 
 for(i in 1:N){
-  Ni[i] = sum(!is.na(Y[i,1:4]))  ### denotes how many values are not NA's
+  Ni[i] = sum(!is.na(Y[i,1:TT]))  ### denotes how many values are not NA's
   for(t in 1:TT){
     Nx[i,t] = ifelse(!is.na(Y[i,t]),t,NA)   ### observed years
     Nx.NA[i,t] = ifelse(is.na(Y[i,t]),t,NA)   ### denotes which years for subject are NA's, t=1:Ni, i=1:N.
@@ -173,15 +173,15 @@ for(i in 1:N){
 }  
 
 
-N.mis = sum(Ni<K)
+N.mis = sum(Ni<TT)
 id.mis = Ni.mis = rep(NA,N.mis)
 TTi.mis = matrix(NA,N.mis,TT)
 id = 0
 for(i in 1:N){
-  if(Ni[i]<K){
+  if(Ni[i]<TT){
     id = id+1
     id.mis[id] = i
-    Ni.mis[id] = K-Ni[i]
+    Ni.mis[id] = TT-Ni[i]
     TTi.mis[id,1:Ni.mis[id]] = Nx.NA[i,!is.na(Nx.NA[i,])]
   }
 }  
@@ -221,19 +221,16 @@ for(i in 1:N){
 Wobs[,1] = NA
 Wobs[,TT+2] = NA
 inits <- function(){	list(
-  "betaF" = rnorm(L,0,0.001) , 
-  "betaP" = rnorm(L,0,0.001) , 
-  "gammaF" = rnorm(M,0,0.001) ,
-  "gammaP" = rnorm(M,0,0.001) ,
+  "beta" = rnorm(L,0,0.001) , 
+  "gamma" = rnorm(M,0,0.001) ,
   "invsigma2" = rep(1,L) ,
-  "kappainiF" = c(0:(K-2)) , 
-  "kappainiP" = c(0:(K-2)) , 
+  "kappaini" = c(0:(K-2)) , 
   "Wobs" = Wobs 
 )	}
 
 ### Parameters
 param <- c(
-  "betaF","betaP", "gammaF","gammaP", "sigma2" , "kappaF","kappaP"
+  "beta","gamma", "sigma2" , "kappa"
 )
 
 ##################################################
