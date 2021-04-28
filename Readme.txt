@@ -1,9 +1,8 @@
 ##################################################
 
 Paper: 
-A Hidden Markov model addressing missing ordinal responses 
-and replicated covariates to monitor Parkinson’s disease 
-progression based on recorded speech
+Monitoring Parkinson’s disease progression based on recorded speech 
+with missing ordinal responses and replicated covariates
 
 
 Authors:
